@@ -1,0 +1,11 @@
+[customizations.installer]
+unattended = true
+sudo-nopasswd = ["core"]
+
+[[customizations.user]]
+name = "core"
+password = "PASSWORD_PLACEHOLDER"
+groups = ["wheel"]
+
+[customizations.kernel]
+append = "inst.text console=tty0"

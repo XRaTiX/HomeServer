@@ -1,0 +1,12 @@
+[Unit]
+Description=Set SELinux context for custom SSH port
+ConditionPathExists=!/etc/selinux/custom-ssh-port-set
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/semanage port -a -t ssh_port_t -p tcp 50123
+ExecStart=/bin/touch /etc/selinux/custom-ssh-port-set
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

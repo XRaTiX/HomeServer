@@ -1,0 +1,17 @@
+[Unit]
+Description=Start Docker Compose stack
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+ConditionPathExists=!/home/core/.docker-compose.finished
+
+[Service]
+Type=oneshot
+User=core
+WorkingDirectory=/home/core/DockerSettings
+ExecStart=/usr/bin/docker compose up -d
+ExecStart=/bin/touch /home/core/.docker-compose.finished
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

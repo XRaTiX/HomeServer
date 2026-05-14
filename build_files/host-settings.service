@@ -1,0 +1,14 @@
+[Unit]
+Description=Stow dotfiles from DockerSettings
+ConditionPathExists=!/home/core/.dotfiles-stowed
+
+[Service]
+Type=oneshot
+User=core
+ExecStart=/usr/bin/stow --dir=/home/core/DockerSettings \
+    --target=/home/core "Host Settings"
+ExecStart=/bin/touch /home/core/.dotfiles-stowed
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

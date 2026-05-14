@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount HDD
+After=local-fs.target systemd-tmpfiles-setup.service
+Requires=systemd-tmpfiles-setup.service
+
+[Mount]
+What=UUID=e998e79b-d873-4285-81d6-31aa04ce7ab9
+Where=/var/mnt/HDD
+Type=ext4
+Options=defaults,nofail,x-systemd.device-timeout=30
+
+[Install]
+WantedBy=multi-user.target
