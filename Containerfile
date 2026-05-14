@@ -7,7 +7,7 @@ FROM ghcr.io/ublue-os/ucore-minimal:latest
 RUN --mount=type=secret,id=core_password_hash \
     useradd -m -G wheel core && \
     echo "core:$(cat /run/secrets/core_password_hash)" | chpasswd -e
-    
+
 RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/wheel
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
@@ -26,7 +26,7 @@ RUN --mount=type=secret,id=dockersettings_deploy_key \
     cp /run/secrets/dockersettings_deploy_key /home/core/.ssh/dockersettings_key && \
     chmod 600 /home/core/.ssh/dockersettings_key && \
     GIT_SSH_COMMAND="ssh -i /home/core/.ssh/dockersettings_key -o StrictHostKeyChecking=no" \
-    git clone git@github.com:XRaTiX/DockerSettings.git /home/core/DockerSettings && \
+    git clone --recurse-submodules git@github.com:XRaTiX/DockerSettings.git /home/core/DockerSettings && \
     chown -R core:core /home/core/.ssh /home/core/DockerSettings
 
 RUN --mount=type=secret,id=ssh_private_key \

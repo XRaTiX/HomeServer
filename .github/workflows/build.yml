@@ -100,6 +100,8 @@ jobs:
             --secret id=core_password_hash,env=CORE_PASSWORD_HASH \
             --label "${{ steps.metadata.outputs.labels }}" \
             -t ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} \
+            -t ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}.$(date +%Y%m%d) \
+            -t ${{ env.IMAGE_NAME }}:$(date +%Y%m%d) \
             -f ./Containerfile \
              .
 
