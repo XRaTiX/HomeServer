@@ -88,6 +88,7 @@ jobs:
          SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
          DOCKERSETTINGS_DEPLOY_KEY: ${{ secrets.DOCKERSETTINGS_DEPLOY_KEY }}
          GHCR_AUTH: ${{ secrets.GHCR_AUTH }}
+         CORE_PASSWORD_HASH: ${{ secrets.CORE_PASSWORD_HASH }}
         run: |
            buildah build \
             --secret id=ssh_private_key,env=SSH_PRIVATE_KEY \
@@ -96,6 +97,7 @@ jobs:
             --secret id=ssh_config,env=SSH_CONFIG \
             --secret id=dockersettings_deploy_key,env=DOCKERSETTINGS_DEPLOY_KEY \
             --secret id=ghcr_auth,env=GHCR_AUTH \
+            --secret id=core_password_hash,env=CORE_PASSWORD_HASH \
             --label "${{ steps.metadata.outputs.labels }}" \
             -t ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} \
             -f ./Containerfile \
