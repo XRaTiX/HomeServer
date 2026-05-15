@@ -8,6 +8,8 @@ ConditionPathExists=!/home/core/.docker-compose.finished
 [Service]
 Type=oneshot
 User=core
+Restart=on-failure
+RestartSec=30s
 WorkingDirectory=/home/core/DockerSettings
 ExecStart=/usr/bin/docker compose up -d
 ExecStart=/bin/touch /home/core/.docker-compose.finished

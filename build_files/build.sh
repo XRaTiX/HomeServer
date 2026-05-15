@@ -45,7 +45,7 @@ mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.timer.d/
 cat > /etc/systemd/system/bootc-fetch-apply-updates.timer.d/custom.conf << 'EOF'
 [Timer]
 OnCalendar=
-OnCalendar=Sat *-*-* 03:00:00
+OnCalendar=*-*-* 08:00:00
 RandomizedDelaySec=30m
 EOF
 

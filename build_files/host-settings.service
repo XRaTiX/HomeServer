@@ -5,6 +5,8 @@ ConditionPathExists=!/home/core/.dotfiles-stowed
 [Service]
 Type=oneshot
 User=core
+Restart=on-failure
+RestartSec=30s
 ExecStart=/usr/bin/stow --dir=/home/core/DockerSettings \
     --target=/home/core "Host Settings"
 ExecStart=/bin/touch /home/core/.dotfiles-stowed

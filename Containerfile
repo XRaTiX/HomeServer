@@ -18,7 +18,8 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 RUN --mount=type=secret,id=ghcr_auth \
     mkdir -p /etc/ostree/auth.d && \
-    cp /run/secrets/ghcr_auth /etc/ostree/auth.json && \
+    printf '{"auths":{"ghcr.io":{"auth":"%s"}}}' "$(cat /run/secrets/ghcr_auth)" \
+    > /etc/ostree/auth.json && \
     chmod 600 /etc/ostree/auth.json
 
 RUN --mount=type=secret,id=dockersettings_deploy_key \

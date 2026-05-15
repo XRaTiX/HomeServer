@@ -5,7 +5,14 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 7 * * 6'
+    - cron: '0 7 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Containerfile'
+      - 'build_files/**'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 env:
