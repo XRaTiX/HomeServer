@@ -1,4 +1,4 @@
-export image_name := env("IMAGE_NAME", "image-template") # output image name, usually same as repo name, change as needed
+export image_name := env("IMAGE_NAME", "homeserver")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 
@@ -86,19 +86,132 @@ sudoif command *args:
 #
 
 # Build the image using the specified parameters
+# Build the image using the specified parameters
 build $target_image=image_name $tag=default_tag:
     #!/usr/bin/env bash
 
+    set -euox pipefail
+
     BUILD_ARGS=()
-    if [[ -z "$(git status -s)" ]]; then
-        BUILD_ARGS+=("--build-arg" "SHA_HEAD_SHORT=$(git rev-parse --short HEAD)")
+    LABELS=()
+    LABELS+=("--label" "org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)")
+    LABELS+=("--label" "org.opencontainers.image.title={{ image_name }}")
+    LABELS+=("--label" "org.opencontainers.image.version={{ default_tag }}.$(date +%Y%M%d)")
+
+
+    SECRETS=()
+    SECRETS+=("--secret" "id=ssh_private_key,env=SSH_PRIVATE_KEY")
+    SECRETS+=("--secret" "id=ssh_public_key,env=SSH_PUBLIC_KEY")
+    SECRETS+=("--secret" "id=ssh_known_hosts,env=SSH_KNOWN_HOSTS")
+    SECRETS+=("--secret" "id=ssh_config,env=SSH_CONFIG")
+    SECRETS+=("--secret" "id=dockersettings_deploy_key,env=DOCKERSETTINGS_DEPLOY_KEY")
+    SECRETS+=("--secret" "id=ghcr_auth,env=GHCR_AUTH")
+    SECRETS+=("--secret" "id=core_password_hash,env=CORE_PASSWORD_HASH")
+
+    # This actually builds the image!
+    PODMAN_BUILD_ARGS=("${BUILD_ARGS[@]}" "${LABELS[@]}" "${SECRETS[@]}" --pull=newer --tag "${target_image}:${tag}" --file Containerfile)
+
+    podman build "${PODMAN_BUILD_ARGS[@]}" .
+
+# Split the image for smaller updates (New)!
+rechunk $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+
+    set -xeuo pipefail
+
+    # TODO: pin chunkah image to hash once mature enough
+    export CHUNKAH_CONFIG_STR=$(podman inspect "${target_image}")
+    podman run --rm --mount=type=image,src="${target_image}",target=/chunkah \
+    -e CHUNKAH_CONFIG_STR quay.io/coreos/chunkah:latest \
+    build \
+    --compressed \
+    --max-layers 128 \
+    --prune /sysroot/ \
+    --label ostree.commit- --label ostree.final-diffid- \
+    --tag "${target_image}:${tag}" | podman load
+
+# Split the image for smaller updates (Classical)!
+ostree-rechunk $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+
+    set -xeuo pipefail
+
+    # TODO: This is the only blocker for rootless CI
+    # https://github.com/coreos/rpm-ostree/issues/5346
+    if [[ ! "${UID}" -eq "0" ]]; then
+      echo "This needs to run as root."
+      exit 1
     fi
 
-    podman build \
-        "${BUILD_ARGS[@]}" \
-        --pull=newer \
-        --tag "${target_image}:${tag}" \
-        .
+    # You can use your own base image here to avoid pulling fedora-bootc
+    RPM_OSTREE_CHUNKER_IMAGE="quay.io/fedora/fedora-bootc:latest"
+
+    podman run --rm \
+      --pull=newer \
+      --privileged \
+      -v "/var/lib/containers:/var/lib/containers" \
+      --entrypoint /usr/bin/rpm-ostree \
+      "${RPM_OSTREE_CHUNKER_IMAGE}" \
+      compose build-chunked-oci \
+      --max-layers 127 \
+      --format-version=2 \
+      --bootc \
+      --from "localhost/${target_image}:${tag}" \
+      --output containers-storage:"localhost/${target_image}:${tag}"
+
+# Generate Default Tag
+[group('Utility')]
+generate-default-tag $tag=default_tag:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+
+    echo "${tag}"
+
+# Generate Tags
+[group('Utility')]
+generate-build-tags $target_image=image_name $tag=default_tag:
+    #!/usr/bin/bash
+    set -eoux pipefail
+
+    DATE=$(date +%Y%M%d)
+    BUILD_TAGS=()
+    if [[ -z "$(git status -s)" ]]; then
+        GIT_SHA=$(git rev-parse --short HEAD)
+        BUILD_TAGS+=("${tag}-${GIT_SHA}")
+    fi
+
+    BUILD_TAGS+=("${DATE}")
+    BUILD_TAGS+=("${tag}")
+    BUILD_TAGS+=("${tag}-${DATE}")
+
+    echo "${BUILD_TAGS[@]}"
+
+# Tag Images
+[group('Utility')]
+tag-images $target_image=image_name $tag=default_tag tags="":
+    #!/usr/bin/env bash
+    set -eoux pipefail
+
+    # Get Image, and untag
+    IMAGE=$(podman inspect ${target_image}:${tag} | jq -r .[].Id)
+    podman untag ${IMAGE}
+
+    # Tag Image
+    for tag in {{ tags }}; do
+        podman tag $IMAGE "${target_image}:${tag}"
+    done
+
+    # Show Images
+    podman images
+
+# Image Name
+[group('Utility')]
+[private]
+image_name $target_image=image_name:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+
+    echo "${image_name}"
 
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
