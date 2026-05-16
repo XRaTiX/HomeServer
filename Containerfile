@@ -31,28 +31,15 @@ RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service && \
     ln -sf /dev/null /usr/lib/systemd/system/firewalld.service           
 
 RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.timer.d/ && \
-    cat > /etc/systemd/system/bootc-fetch-apply-updates.timer.d/custom.conf << 'EOF'
-[Timer]
-OnCalendar=
-OnCalendar=*-*-* 03:00:00
-RandomizedDelaySec=30m
-EOF
+    printf '[Timer]\nOnCalendar=\nOnCalendar=*-*-* 03:00:00\nRandomizedDelaySec=30m\n' \
+    > /etc/systemd/system/bootc-fetch-apply-updates.timer.d/custom.conf
 
 RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.service.d/ && \
-    cat > /etc/systemd/system/bootc-fetch-apply-updates.service.d/download-only.conf << 'EOF'
-[Service]
-ExecStart=
-ExecStart=/usr/bin/bootc upgrade
-EOF
+    printf '[Service]\nExecStart=\nExecStart=/usr/bin/bootc upgrade\n' \
+    > /etc/systemd/system/bootc-fetch-apply-updates.service.d/custom.conf
 
-RUN cat > /etc/tmpfiles.d/homeserver.conf << 'EOF'
-d /var/mnt/HDD 0755 core core -
-d /var/mnt/HDD/Multimedia 0755 core core -
-d /mnt/HDD/Multimedia 0755 core core -
-d /home/core/torrents 0755 core core -
-d /home/core/torrents/complete 0755 core core -
-d /home/core/torrents/incomplete 0755 core core -
-EOF
+RUN printf 'd /var/mnt/HDD 0755 core core -\nd /var/mnt/HDD/Multimedia 0755 core core -\nd /mnt/HDD/Multimedia 0755 core core -\nd /home/core/torrents 0755 core core -\nd /home/core/torrents/complete 0755 core core -\nd /home/core/torrents/incomplete 0755 core core -\n' \
+    > /etc/tmpfiles.d/homeserver.conf
 
 RUN --mount=type=secret,id=ghcr_auth \
     mkdir -p /etc/ostree/auth.d && \
