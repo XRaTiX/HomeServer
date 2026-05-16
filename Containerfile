@@ -1,20 +1,58 @@
-# Allow build scripts to be referenced without being copied into the final image
-FROM scratch AS ctx
-COPY build_files /
-
 FROM ghcr.io/ublue-os/ucore-minimal:latest
 
 RUN --mount=type=secret,id=core_password_hash \
     useradd -m -G wheel core && \
-    echo "core:$(cat /run/secrets/core_password_hash)" | chpasswd -e
+    echo "core:$(cat /run/secrets/core_password_hash)" | chpasswd -e && \
+    echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/wheel && \
+    usermod --shell /usr/bin/zsh core && \
+    usermod -aG docker core
 
-RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/wheel
+RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=cache,dst=/var/cache \
-    --mount=type=cache,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    /ctx/build.sh
+COPY build_files/*/usr/lib/systemd/system/
+#Habilitar servicios
+RUN ln -sf /usr/lib/systemd/system/var-mnt-HDD.mount \
+           /usr/lib/systemd/system/multi-user.target.wants/var-mnt-HDD.mount && \
+    ln -sf /usr/lib/systemd/system/bootc-fetch-apply-updates.timer \
+           /usr/lib/systemd/system/timers.target.wants/bootc-fetch-apply-updates.timer && \
+    ln -sf /usr/lib/systemd/system/docker-compose-up.service \
+           /usr/lib/systemd/system/multi-user.target.wants/docker-compose-up.service && \
+    ln -sf /usr/lib/systemd/system/host-settings.service \
+           /usr/lib/systemd/system/multi-user.target.wants/host-settings.service && \
+    ln -sf /usr/lib/systemd/system/set-selinux-context.service \
+           /usr/lib/systemd/system/multi-user.target.wants/set-selinux-context.service && \
+    ln -sf /usr/lib/systemd/system/docker.service \
+           /usr/lib/systemd/system/multi-user.target.wants/docker.service && \
+    ln -sf /usr/lib/systemd/system/docker.socket \
+           /usr/lib/systemd/system/sockets.target.wants/docker.socket
+
+#Deshabilitar servicios
+RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service && \
+    ln -sf /dev/null /usr/lib/systemd/system/firewalld.service           
+
+RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.timer.d/ && \
+    cat > /etc/systemd/system/bootc-fetch-apply-updates.timer.d/custom.conf << 'EOF'
+[Timer]
+OnCalendar=
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=30m
+EOF
+
+RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.service.d/ && \
+    cat > /etc/systemd/system/bootc-fetch-apply-updates.service.d/download-only.conf << 'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/bootc upgrade
+EOF
+
+RUN cat > /etc/tmpfiles.d/homeserver.conf << 'EOF'
+d /var/mnt/HDD 0755 core core -
+d /var/mnt/HDD/Multimedia 0755 core core -
+d /mnt/HDD/Multimedia 0755 core core -
+d /home/core/torrents 0755 core core -
+d /home/core/torrents/complete 0755 core core -
+d /home/core/torrents/incomplete 0755 core core -
+EOF
 
 RUN --mount=type=secret,id=ghcr_auth \
     mkdir -p /etc/ostree/auth.d && \
@@ -46,18 +84,13 @@ RUN --mount=type=secret,id=ssh_private_key \
               /home/core/.ssh/config
 
 # Puerto ssh
-COPY build_files/99-custom-ssh-port.conf /etc/ssh/sshd_config.d/99-custom-ssh-port.conf
+COPY build_files/port.conf /etc/ssh/sshd_config.d/99-port.conf
 
 COPY build_files/hostname /etc/hostname
 
-#Adguardhome lo necesita
 COPY build_files/resolved.conf /etc/systemd/resolved.conf
 
 COPY build_files/vconsole.conf /etc/vconsole.conf
-
-RUN usermod --shell /usr/bin/zsh core
-
-RUN usermod -aG docker core
 
 RUN ln -sf /usr/share/zoneinfo/America/Panama /etc/localtime && \
     echo "America/Panama" > /etc/timezone
