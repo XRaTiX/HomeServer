@@ -70,7 +70,7 @@ jobs:
          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
          SSH_CONFIG: ${{ secrets.SSH_CONFIG }}
-         DOCKERSETTINGS_DEPLOY_KEY: ${{ secrets.DOCKERSETTINGS_DEPLOY_KEY }}
+         TOKEN: ${{ secrets.TOKEN }}
          GHCR_AUTH: ${{ secrets.GHCR_AUTH }}
          CORE_PASSWORD_HASH: ${{ secrets.CORE_PASSWORD_HASH }}
         run: |
