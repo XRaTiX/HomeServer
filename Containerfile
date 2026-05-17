@@ -9,7 +9,20 @@ RUN --mount=type=secret,id=core_password_hash \
 
 RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
 
-COPY build_files/* /usr/lib/systemd/system/
+COPY build_files/*.service /usr/lib/systemd/system/
+
+COPY build_files/clone-repo.sh /usr/local/bin/clone-repo.sh 
+
+RUN chmod +x /usr/local/bin/clone-repo.sh
+
+COPY build_files/port.conf /etc/ssh/sshd_config.d/99-port.conf
+
+COPY build_files/hostname /etc/hostname
+
+COPY build_files/resolved.conf /etc/systemd/resolved.conf
+
+COPY build_files/vconsole.conf /etc/vconsole.conf
+
 #Habilitar servicios
 RUN ln -sf /usr/lib/systemd/system/var-mnt-HDD.mount \
            /usr/lib/systemd/system/multi-user.target.wants/var-mnt-HDD.mount && \
@@ -50,6 +63,7 @@ RUN --mount=type=secret,id=ghcr_auth \
 RUN --mount=type=secret,id=token \
     mkdir -p /etc/dockersettings && \
     cp /run/secrets/token /etc/dockersettings/token && \
+    chown core:core /etc/dockersettings/token && \
     chmod 600 /etc/dockersettings/token
 
 RUN --mount=type=secret,id=ssh_private_key \
@@ -66,15 +80,6 @@ RUN --mount=type=secret,id=ssh_private_key \
               /home/core/.ssh/authorized_keys && \
     chmod 644 /home/core/.ssh/known_hosts \
               /home/core/.ssh/config
-
-# Puerto ssh
-COPY build_files/port.conf /etc/ssh/sshd_config.d/99-port.conf
-
-COPY build_files/hostname /etc/hostname
-
-COPY build_files/resolved.conf /etc/systemd/resolved.conf
-
-COPY build_files/vconsole.conf /etc/vconsole.conf
 
 RUN ln -sf /usr/share/zoneinfo/America/Panama /etc/localtime && \
     echo "America/Panama" > /etc/timezone

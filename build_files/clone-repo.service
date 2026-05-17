@@ -8,9 +8,7 @@ ConditionPathExists=!/home/core/.repo-cloned
 Type=oneshot
 User=core
 StandardOutput=journal+console
-ExecStart=/usr/bin/git clone --recurse-submodules \
-    git clone https://${TOKEN}@github.com/XRaTiX/DockerSettings.git \
-    /home/core/DockerSettings
+ExecStart=/usr/local/bin/clone-repo.sh
 ExecStart=/bin/touch /home/core/.repo-cloned
 RemainAfterExit=yes
 
