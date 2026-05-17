@@ -1,8 +1,8 @@
 [Unit]
 Description=Start Docker Compose stack
-After=network-online.target docker.service
+After=network-online.target docker.service clone-repo.service
 Wants=network-online.target
-Requires=docker.service
+Requires=docker.service clone-repo.service
 ConditionPathExists=!/home/core/.docker-compose.finished
 
 [Service]

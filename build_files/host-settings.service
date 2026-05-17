@@ -1,7 +1,8 @@
 [Unit]
 Description=Stow dotfiles from DockerSettings
 ConditionPathExists=!/home/core/.dotfiles-stowed
-
+After=clone-repo.service
+Requires=clone-repo.service
 [Service]
 Type=oneshot
 User=core

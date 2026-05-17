@@ -47,13 +47,10 @@ RUN --mount=type=secret,id=ghcr_auth \
     > /etc/ostree/auth.json && \
     chmod 600 /etc/ostree/auth.json
 
-RUN --mount=type=secret,id=dockersettings_deploy_key \
-    mkdir -p /home/core/.ssh && \
-    cp /run/secrets/dockersettings_deploy_key /home/core/.ssh/dockersettings_key && \
-    chmod 600 /home/core/.ssh/dockersettings_key && \
-    GIT_SSH_COMMAND="ssh -i /home/core/.ssh/dockersettings_key -o StrictHostKeyChecking=no" \
-    git clone --recurse-submodules git@github.com:XRaTiX/DockerSettings.git /home/core/DockerSettings && \
-    chown -R core:core /home/core/.ssh /home/core/DockerSettings
+RUN --mount=type=secret,id=token \
+    mkdir -p /etc/dockersettings && \
+    cp /run/secrets/token /etc/dockersettings/token && \
+    chmod 600 /etc/dockersettings/token
 
 RUN --mount=type=secret,id=ssh_private_key \
     --mount=type=secret,id=ssh_public_key \
