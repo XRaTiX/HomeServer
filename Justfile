@@ -104,7 +104,7 @@ build $target_image=image_name $tag=default_tag:
     SECRETS+=("--secret" "id=ssh_public_key,env=SSH_PUBLIC_KEY")
     SECRETS+=("--secret" "id=ssh_known_hosts,env=SSH_KNOWN_HOSTS")
     SECRETS+=("--secret" "id=ssh_config,env=SSH_CONFIG")
-    SECRETS+=("--secret" "id=dockersettings_deploy_key,env=DOCKERSETTINGS_DEPLOY_KEY")
+    SECRETS+=("--secret" "id=token,env=TOKEN")
     SECRETS+=("--secret" "id=ghcr_auth,env=GHCR_AUTH")
     SECRETS+=("--secret" "id=core_password_hash,env=CORE_PASSWORD_HASH")
 
