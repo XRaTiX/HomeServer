@@ -40,7 +40,8 @@ RUN ln -sf /usr/lib/systemd/system/var-mnt-HDD.mount \
            /usr/lib/systemd/system/sockets.target.wants/docker.socket
 
 #Deshabilitar servicios
-RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service          
+RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service && \
+    ln -sf /dev/null /usr/lib/systemd/system/firewalld.service           
 
 RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.timer.d/ && \
     printf '[Timer]\nOnCalendar=\nOnCalendar=*-*-* 03:00:00\nRandomizedDelaySec=30m\n' \
