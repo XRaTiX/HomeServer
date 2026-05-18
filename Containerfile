@@ -1,10 +1,11 @@
-FROM quay.io/fedora/fedora-bootc:44
+FROM ghcr.io/ublue-os/ucore-minimal:latest
 
 RUN --mount=type=secret,id=core_password_hash \
     useradd -m -G wheel core && \
     echo "core:$(cat /run/secrets/core_password_hash)" | chpasswd -e && \
     echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/wheel && \
-    usermod --shell /usr/bin/zsh core
+    usermod --shell /usr/bin/zsh core && \
+    usermod -aG docker core
 
 RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
 
