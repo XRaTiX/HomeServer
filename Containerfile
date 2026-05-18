@@ -1,11 +1,10 @@
-FROM ghcr.io/ublue-os/ucore-minimal:latest
+FROM quay.io/fedora/fedora-bootc:44
 
 RUN --mount=type=secret,id=core_password_hash \
     useradd -m -G wheel core && \
     echo "core:$(cat /run/secrets/core_password_hash)" | chpasswd -e && \
     echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/wheel && \
-    usermod --shell /usr/bin/zsh core && \
-    usermod -aG docker core
+    usermod --shell /usr/bin/zsh core
 
 RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
 
@@ -40,8 +39,7 @@ RUN ln -sf /usr/lib/systemd/system/var-mnt-HDD.mount \
            /usr/lib/systemd/system/sockets.target.wants/docker.socket
 
 #Deshabilitar servicios
-RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service && \
-    ln -sf /dev/null /usr/lib/systemd/system/firewalld.service           
+RUN ln -sf /dev/null /usr/lib/systemd/system/zincati.service          
 
 RUN mkdir -p /etc/systemd/system/bootc-fetch-apply-updates.timer.d/ && \
     printf '[Timer]\nOnCalendar=\nOnCalendar=*-*-* 03:00:00\nRandomizedDelaySec=30m\n' \
