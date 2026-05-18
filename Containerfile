@@ -9,7 +9,7 @@ RUN --mount=type=secret,id=core_password_hash \
 
 RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
 
-COPY build_files/*.service /usr/lib/systemd/system/
+COPY build_files/services/* /usr/lib/systemd/system/
 
 COPY build_files/clone-repo.sh /usr/local/bin/clone-repo.sh 
 
