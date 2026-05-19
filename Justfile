@@ -128,7 +128,6 @@ rechunk $target_image=image_name $tag=default_tag:
     --compressed \
     --max-layers 128 \
     --prune /sysroot/ \
-    --label ostree.commit- --label ostree.final-diffid- \
     --tag "${target_image}:${tag}" | podman load
 
 # Split the image for smaller updates (Classical)!
