@@ -182,6 +182,8 @@ generate-build-tags $target_image=image_name $tag=default_tag:
     fi
 
     BUILD_TAGS+=("${DATE}")
+    BUILD_TAGS+=("${tag}")           # ← este genera el tag "latest"
+    BUILD_TAGS+=("${tag}-${DATE}")   # ← este genera "latest-20260519"
 
     echo "${BUILD_TAGS[@]}"
 
