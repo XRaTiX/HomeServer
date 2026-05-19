@@ -94,9 +94,10 @@ build $target_image=image_name $tag=default_tag:
 
     BUILD_ARGS=()
     LABELS=()
-    LABELS+=("--label" "org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)")
+    LABELS+=("--label" "org.opencontainers.image.created=$(git log -1 --format=%cI)")
     LABELS+=("--label" "org.opencontainers.image.title={{ image_name }}")
-    LABELS+=("--label" "org.opencontainers.image.version={{ default_tag }}.$(date +%Y%M%d)")
+    LABELS+=("--label" "org.opencontainers.image.version={{ default_tag }}.$(git log -1 --format=%cd --date=format:%Y%m%d)")
+
 
 
     SECRETS=()
@@ -173,7 +174,7 @@ generate-build-tags $target_image=image_name $tag=default_tag:
     #!/usr/bin/bash
     set -eoux pipefail
 
-    DATE=$(date +%Y%M%d)
+    DATE=$(git log -1 --format=%cd --date=format:%Y%m%d)
     BUILD_TAGS=()
     if [[ -z "$(git status -s)" ]]; then
         GIT_SHA=$(git rev-parse --short HEAD)
@@ -181,8 +182,6 @@ generate-build-tags $target_image=image_name $tag=default_tag:
     fi
 
     BUILD_TAGS+=("${DATE}")
-    BUILD_TAGS+=("${tag}")
-    BUILD_TAGS+=("${tag}-${DATE}")
 
     echo "${BUILD_TAGS[@]}"
 
