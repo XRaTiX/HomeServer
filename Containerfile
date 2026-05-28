@@ -7,7 +7,7 @@ RUN --mount=type=secret,id=core_password_hash \
     usermod --shell /usr/bin/zsh core && \
     usermod -aG docker core
 
-RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr && dnf5 clean all
+RUN dnf5 install -y btop git zsh stow alsa-sof-firmware cage seatd distrobox pipewire alsa-utils wlr-randr fastfetch cmatrix && dnf5 clean all
 
 COPY build_files/services/* /usr/lib/systemd/system/
 
